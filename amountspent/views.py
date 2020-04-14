@@ -12,8 +12,15 @@ def index(request):
         # print(form.start_date)
         # print(form.end_date)
         if form.is_valid():
-            start_date = str(form.cleaned_data['start_date'])
-            end_date = str(form.cleaned_data['end_date'])
+            start_date = form.cleaned_data['start_date']
+            end_date = form.cleaned_data['end_date']
+            x = int(str(end_date - start_date).split()[0])
+            if x < 0:
+                date_diff = "Start Date must be smaller then End Date"
+                return HttpResponseRedirect(reverse('amountspent:date_error', args=(date_diff,)))
+            print(x)
+            start_date = str(start_date)
+            end_date = str(end_date)
             print(f"Your start date is {start_date} and your end date is {end_date}" )
             print(type(start_date))
             spend = get_data_from_api(start_date,end_date)
@@ -34,3 +41,6 @@ def thanks(request, total_val, total_count, start_date, end_date):
                     {'total_val': total_val, 'total_count': total_count, 
                     'start_date':start_date,'end_date': end_date}
                     )
+
+def date_error(request, date_diff):
+    return render(request, 'amountspent/date_error.html',{'error':date_diff})
