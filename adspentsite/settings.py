@@ -25,12 +25,12 @@ STATIC_DIR = os.path.join(BASE_DIR,'amountspent/static/')
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'qwwiy^#!lx_l3!^$rzdvc*vyghvqik8tktgvklc#yv=3btuz9e'
+SECRET_KEY = os.environ['SECRET_KEY']
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['fbamountspent.herokuapp.com']
 
 
 # Application definition
