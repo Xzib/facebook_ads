@@ -1,0 +1,31 @@
+{% extends "amountspent/base.html" %}
+{% block title %}
+  Home
+{% endblock title %}
+
+{% block content %}
+   <!-- Header -->
+   <header class="masthead">
+    <div class="container d-flex h-100 align-items-center">
+      <div class="mx-auto text-center">
+        <h1 class="mx-auto my-0 text-uppercase">Facebook ads</h1>
+        <h2 class="text-white-50 mx-auto mt-2 mb-5">Amount Spent</h2>
+        <form method="POST">
+            {% csrf_token %}    
+            {% for field in form %}
+                <label class="text-white-50 mx-2 mt-2 mb-5">{{field.label}}</label>
+                {{field}}
+            {% endfor %}
+            
+            <!-- {{ form.as_p}} -->
+            <div>
+                <input class="btn btn-primary" type="submit" value="Submit">
+            </div>
+            
+        </form>
+        
+        <!-- <a href="#about" class="btn btn-primary js-scroll-trigger">Get Started</a> -->
+      </div>
+    </div>
+  </header>
+{% endblock %}
