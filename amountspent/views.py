@@ -25,21 +25,29 @@ def index(request):
             print(type(start_date))
             spend = get_data_from_api(start_date,end_date)
             df = pd.DataFrame(spend)
-            df.columns = ['Amount_spent']
-            df = df.astype(float)
-            total_val = df['Amount_spent'].sum()
-            total_val = float("{:.2f}".format(total_val))
-            total_count = len(df.index)
-            return HttpResponseRedirect(reverse('amountspent:thanks', args=(total_val, total_count, start_date, end_date)))
+            df.columns = ['Campaign_ID', 'Campaign_Name', 'Amount_spent']
+            print(df.dtypes)
+            df.Amount_spent = df.Amount_spent.astype('float')
+            df.Campaign_ID = df.Campaign_ID.astype('str')
+            print(df.dtypes)
+            print(df.head)
+            id_campaign = df['Campaign_ID']=='6150583506976'
+            df = df[id_campaign]
+            print(df.head)
+            # df = df.astype(float)
+            # total_val = df['Amount_spent'].sum()
+            # total_val = float("{:.2f}".format(total_val))
+            # total_count = len(df.index)
+            return HttpResponseRedirect(reverse('amountspent:thanks'))#, args=(total_val, total_count, start_date, end_date)))
     else:
         form = AmountDate()
     
     return render(request, 'amountspent/index.html' , {'form' : form})
 
-def thanks(request, total_val, total_count, start_date, end_date):
-    return  render(request,'amountspent/thanks.html', 
-                    {'total_val': total_val, 'total_count': total_count, 
-                    'start_date':start_date,'end_date': end_date}
+def thanks(request):#, total_val, total_count, start_date, end_date):
+    return  render(request,'amountspent/thanks.html'#, 
+                    # {'total_val': total_val, 'total_count': total_count, 
+                    # 'start_date':start_date,'end_date': end_date}
                     )
 
 def date_error(request, date_diff):
