@@ -27,20 +27,23 @@ from facebook_business.api import FacebookAdsApi, FacebookAdsApiBatch
 from facebook_business.adobjects.adsinsights import AdsInsights
 from facebook_business.adobjects.adaccount import AdAccount
 from facebook_business.adobjects.campaign import Campaign
+from facebook_business.adobjects.adset import AdSet
 from facebook_business.adobjects.customaudience import CustomAudience
 from facebook_business.adobjects.business import Business
 from batch_utils import generate_batches
 import datetime
+import time
 # FacebookAdsApi.init(access_token=access_token)
 
 def get_data_from_api(start_date,end_date):
 
-    spend_val = []
+    campaigns_all = []
 
     access_token = 'EAAUbBhxccoEBACYABVi5uXdZCfQ94oZAM1B8s0ZB32qsCShZAW3ShDZAstZClenWH0s4bD55aVZCpTgokZA9kfwCJvsKBPD6dmSu2lHGZAf0U2OY2kjphsw8MpZAtgZCUs5KRyV2PXWJoum9vFA4bnUa8Gy6ubTlo7xxROB55qXAKEU5AZDZD'
     bussiness_account_id = '1517651558352959'
     app_secret = '7a3ad485c97dbf45ee83562bc0dcb570'
     app_id = '1437087943127681'
+    start_time = datetime.datetime.now()
 
     api = FacebookAdsApi.init(app_id, app_secret, access_token)
 
@@ -115,20 +118,46 @@ def get_data_from_api(start_date,end_date):
                                             ]
         )
 
-        for campaign in account_data:
-            # print(campaign)
-            campaign_id = campaign[AdsInsights.Field.campaign_id]
-            print(campaign_id)
-            
-            # my_camp = Campaign(campaign)
-            # # adset = campaign.get_insights(fields=[AdsInsights.Field.adset_id,
-            # #                                       AdsInsights.Field.adset_name,])
-            # # print(adset)
-            # print(campaign[AdsInsights.Field.campaign_id]) 
-            # # i+=1
-            # # print(i)
+        # campaigns_all = [Campaign(campaign[AdsInsights.Field.campaign_id]) for campaign in account_data]
+        # # print(campaigns_all)
+        # # print(len(campaigns_all)) 
+        # for campaigns in campaigns_all:
+        #     campaign_spent = campaigns.get_insights(params={}, fields=[AdsInsights.Field.spend])
+        #     print(campaign_spent)
+        try:
+            for campaign in account_data:
+                # print(campaign)
+                campaign_id = campaign[AdsInsights.Field.campaign_id]
+                print(campaign_id)
+                my_camp = Campaign(campaign_id)
+                # campaigns_all.append(my_camp)
+                print(my_camp)      
+                # time.sleep(300)
+                adset = AdAccount(my_camp[Campaign.Field.id]).get_ad_sets(
+                                                fields=['id', 'name', 'promoted_object'], 
+                                                params = {})
+                print(adset[0][AdSet.Field.promoted_object])  
+                # time.sleep(300)
+                campaign_spent = my_camp.get_insights(params={}, fields=[AdsInsights.Field.spend])
+                print(campaign_spent)
+                time.sleep(10)  
+        
+        except Exception as e:
+            print(e)
+                        
+        #     # print(my_camp)
+        #     # # adset = campaign.get_insights(fields=[AdsInsights.Field.adset_id,
+        #     # #                                       AdsInsights.Field.adset_name,])
+        #     # # print(adset)
+        #     # print(campaign[AdsInsights.Field.campaign_id]) 
+        #     # # i+=1
+        #     # # print(i)
+        finally:
+            end_time = datetime.datetime.now()
+            diff = end_time - start_time
+            print(diff.total_seconds())
 
-        return "Done" 
+    return "Done" 
     
 
         # # Iterate through all accounts in the business account
@@ -208,5 +237,5 @@ def get_data_from_api(start_date,end_date):
 
 
 if __name__ == "__main__":
-    x = get_data_from_api(start_date='2020-04-01', end_date = '2020-04-14')
+    x = get_data_from_api(start_date='2020-04-10', end_date = '2020-04-14')
     print(x)
