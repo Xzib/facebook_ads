@@ -28,16 +28,45 @@ from facebook_business.adobjects.adsinsights import AdsInsights
 from facebook_business.adobjects.adaccount import AdAccount
 from facebook_business.adobjects.campaign import Campaign
 from facebook_business.adobjects.adset import AdSet
+from facebook_business.adobjects.adpromotedobject import AdPromotedObject
+from facebook_business.adobjects.adreportrun import AdReportRun
+
 from facebook_business.adobjects.customaudience import CustomAudience
 from facebook_business.adobjects.business import Business
 from batch_utils import generate_batches
 import datetime
 import time
-# FacebookAdsApi.init(access_token=access_token)
+import logging
+import requests as rq
+
+#Function to find the string between two strings or characters
+def find_between( s, first, last ):
+    try:
+        start = s.index( first ) + len( first )
+        end = s.index( last, start )
+        print(s[start:end])
+        return s[start:end]
+
+    except ValueError:
+        return ""
+
+#Function to check how close you are to the FB Rate Limit
+def check_limit(ad_account_id,access_token):
+    check=rq.get('https://graph.facebook.com/v6.0/'+ad_account_id+'/insights?access_token='+access_token)
+    usage=float(find_between(check.headers['x-ad-account-usage'],':','}'))
+    print(usage)
+    return usage
+
 
 def get_data_from_api(start_date,end_date):
 
-    campaigns_all = []
+    campaigns_all = {"Campaign_id":[],
+                    "Page_id":[],
+                    "Amount_spent":[],
+                    }
+    page_id = None
+    pixel_id = None
+
 
     access_token = 'EAAUbBhxccoEBACYABVi5uXdZCfQ94oZAM1B8s0ZB32qsCShZAW3ShDZAstZClenWH0s4bD55aVZCpTgokZA9kfwCJvsKBPD6dmSu2lHGZAf0U2OY2kjphsw8MpZAtgZCUs5KRyV2PXWJoum9vFA4bnUa8Gy6ubTlo7xxROB55qXAKEU5AZDZD'
     bussiness_account_id = '1517651558352959'
@@ -52,18 +81,18 @@ def get_data_from_api(start_date,end_date):
     # Get all ad accounts on the business account
     my_ad_account =business.get_owned_ad_accounts(fields=[AdAccount.Field.id])
 
-    fields = [
-        'name',
-        'objective',
-        # 'spend',
+    # fields = [
+    #     'name',
+    #     'objective',
+    #     # 'spend',
 
-    ]
-    params = {
-        'time_range':{'since':start_date,'until':end_date},
-        # 'date_preset':'yesterday',
-        'effective_status': ['ACTIVE','PAUSED'],    
+    # ]
+    # params = {
+    #     'time_range':{'since':start_date,'until':end_date},
+    #     # 'date_preset':'yesterday',
+    #     'effective_status': ['ACTIVE','PAUSED'],    
 
-    }
+    # }
 
     # Iterate through the adaccounts
     for account in my_ad_account:
@@ -95,69 +124,81 @@ def get_data_from_api(start_date,end_date):
 
 
         # Grab insight info for all ads in the adaccount
-        account_data = tempaccount.get_insights(params={#'date_preset':'last_30d',
-                                            'time_increment':'1',
-                                            'time_range':{'since':start_date, 'until':end_date},
-                                            'level':'campaign',
-                                            },
+        account_data = tempaccount.get_insights(params={
+                                                        'time_increment':'1',
+                                                        'time_range':{'since':start_date, 'until':end_date},
+                                                        'level':'campaign',
+                                                        },
                                     
-                                        fields=[#AdsInsights.Field.account_id,
-                                            #AdsInsights.Field.account_name,
-                                            #AdsInsights.Field.ad_id,
-                                            #AdsInsights.Field.ad_name,
-                                            # AdsInsights.Field.adset_id,
-                                            # AdsInsights.Field.adset_name,
+                                        fields=[
                                             AdsInsights.Field.campaign_id,
                                             AdsInsights.Field.campaign_name,
-                                            #AdsInsights.Field.cost_per_outbound_click,
-                                            #AdsInsights.Field.outbound_clicks,
-                                            # AdsInsights.Field.spend,
-                                            # AdsInsights.Field.account_currency,
-                                            #AdsInsights.Field.website_purchase_roas,
-                                            # AdsInsights.Field.place_page_name,
                                             ]
         )
+       
+        for campaign in account_data:
+            try:
+                #Check if you reached 75% of the limit, if yes then back-off for 5 minutes (put this chunk in your 'for ad is ads' loop, every 100-200 iterations)
+                
 
-        # campaigns_all = [Campaign(campaign[AdsInsights.Field.campaign_id]) for campaign in account_data]
-        # # print(campaigns_all)
-        # # print(len(campaigns_all)) 
-        # for campaigns in campaigns_all:
-        #     campaign_spent = campaigns.get_insights(params={}, fields=[AdsInsights.Field.spend])
-        #     print(campaign_spent)
-        try:
-            for campaign in account_data:
-                # print(campaign)
+                #ID OF Campaign
                 campaign_id = campaign[AdsInsights.Field.campaign_id]
-                print(campaign_id)
                 my_camp = Campaign(campaign_id)
-                # campaigns_all.append(my_camp)
-                print(my_camp)      
-                # time.sleep(300)
+
+                #Campaign Insights Object
+                campaign_spent_obj = my_camp.get_insights(params={}, fields=[AdsInsights.Field.spend], 
+                                                        is_async=True)
+                while True:
+                    job = campaign_spent_obj.api_get()
+                    print("Percent done: " + str(job[AdReportRun.Field.async_percent_completion]))
+                    time.sleep(1)
+                    if job:
+                        print("Done!")
+                        break
+                campaign_spent = campaign_spent_obj.get_result() 
+                
+                #Campaign Spend value
+                campaign_spent_val = campaign_spent[0][AdsInsights.Field.spend]
+                campaigns_all["Amount_spent"].append(campaign_spent_val)
+
+                #AdSet Object
                 adset = AdAccount(my_camp[Campaign.Field.id]).get_ad_sets(
                                                 fields=['id', 'name', 'promoted_object'], 
                                                 params = {})
-                print(adset[0][AdSet.Field.promoted_object])  
-                # time.sleep(300)
-                campaign_spent = my_camp.get_insights(params={}, fields=[AdsInsights.Field.spend])
-                print(campaign_spent)
-                time.sleep(10)  
-        
-        except Exception as e:
-            print(e)
-                        
-        #     # print(my_camp)
-        #     # # adset = campaign.get_insights(fields=[AdsInsights.Field.adset_id,
-        #     # #                                       AdsInsights.Field.adset_name,])
-        #     # # print(adset)
-        #     # print(campaign[AdsInsights.Field.campaign_id]) 
-        #     # # i+=1
-        #     # # print(i)
-        finally:
-            end_time = datetime.datetime.now()
-            diff = end_time - start_time
-            print(diff.total_seconds())
+                #page and Pixel ID from Adset
+                if 'page_id' in adset[0][AdSet.Field.promoted_object]:
+                    page_id = adset[0][AdSet.Field.promoted_object][AdPromotedObject.Field.page_id]  
+                    campaigns_all["Page_id"].append(page_id)
+                elif 'pixel_id' in adset[0][AdSet.Field.promoted_object]:
+                    pixel_id = adset[0][AdSet.Field.promoted_object][AdPromotedObject.Field.pixel_id]
+                    campaigns_all["Page_id"].append(pixel_id)
+                    
+                else:
+                    continue
 
-    return "Done" 
+                # Add Values to Dictionary
+                campaigns_all["Campaign_id"].append(campaign_id)
+                campaigns_all["Amount_spent"].append(campaign_spent_val)
+
+                if (check_limit(bussiness_account_id,access_token)>75):
+                    print('75% Rate Limit Reached. Cooling Time 5 Minutes.')
+                    # logging.debug('75% Rate Limit Reached. Cooling Time 5 Minutes.')
+                    time.sleep(300)
+                    
+                print(campaigns_all)
+                # time.sleep(10)  
+
+            except Exception as e:
+                print(e)
+                if e is "page_id":
+                    continue
+
+            finally:
+                end_time = datetime.datetime.now()
+                diff = end_time - start_time
+                print(diff.total_seconds())
+
+    return campaigns_all 
     
 
         # # Iterate through all accounts in the business account
