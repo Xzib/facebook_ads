@@ -33,29 +33,30 @@ from facebook_business.adobjects.adreportrun import AdReportRun
 
 from facebook_business.adobjects.customaudience import CustomAudience
 from facebook_business.adobjects.business import Business
-from batch_utils import generate_batches
+# from batch_utils import generate_batches
 import datetime
 import time
 import logging
 import requests as rq
 
 #Function to find the string between two strings or characters
-def find_between( s, first, last ):
-    try:
-        start = s.index( first ) + len( first )
-        end = s.index( last, start )
-        print(s[start:end])
-        return s[start:end]
+# def find_between( s, first, last ):
+#     try:
+#         start = s.index( first ) + len( first )
+#         end = s.index( last, start )
+#         # print(s[start:end])
+#         return s[start:end]
 
-    except ValueError:
-        return ""
+#     except ValueError:
+#         return ""
 
-#Function to check how close you are to the FB Rate Limit
-def check_limit(ad_account_id,access_token):
-    check=rq.get('https://graph.facebook.com/v6.0/'+ad_account_id+'/insights?access_token='+access_token)
-    usage=float(find_between(check.headers['x-ad-account-usage'],':','}'))
-    print(usage)
-    return usage
+# #Function to check how close you are to the FB Rate Limit
+# def check_limit(ad_account_id,access_token):
+#     check=rq.get('https://graph.facebook.com/v6.0/'+'act_'+ad_account_id+'/insights?access_token='+access_token)
+#     # print(check)
+#     usage=float(find_between(check.headers['x-ad-account-usage'],':','}'))
+#     # print(usage)
+#     return usage
 
 
 def get_data_from_api(start_date,end_date):
@@ -74,7 +75,7 @@ def get_data_from_api(start_date,end_date):
     app_id = '1437087943127681'
     start_time = datetime.datetime.now()
 
-    api = FacebookAdsApi.init(app_id, app_secret, access_token)
+    FacebookAdsApi.init(app_id, app_secret, access_token)
 
     business =  Business(bussiness_account_id)
 
@@ -137,6 +138,10 @@ def get_data_from_api(start_date,end_date):
         )
        
         for campaign in account_data:
+            # if (check_limit(bussiness_account_id,access_token)>75):
+            #         # print('75% Rate Limit Reached. Cooling Time 5 Minutes.')
+            #         # logging.debug('75% Rate Limit Reached. Cooling Time 5 Minutes.')
+            #         time.sleep(300)
             try:
                 #Check if you reached 75% of the limit, if yes then back-off for 5 minutes (put this chunk in your 'for ad is ads' loop, every 100-200 iterations)
                 
@@ -146,20 +151,12 @@ def get_data_from_api(start_date,end_date):
                 my_camp = Campaign(campaign_id)
 
                 #Campaign Insights Object
-                campaign_spent_obj = my_camp.get_insights(params={}, fields=[AdsInsights.Field.spend], 
-                                                        is_async=True)
-                while True:
-                    job = campaign_spent_obj.api_get()
-                    print("Percent done: " + str(job[AdReportRun.Field.async_percent_completion]))
-                    time.sleep(1)
-                    if job:
-                        print("Done!")
-                        break
-                campaign_spent = campaign_spent_obj.get_result() 
+                campaign_spent_obj = my_camp.get_insights(params={}, fields=[AdsInsights.Field.spend])
+                # campaign_spent = campaign_spent_obj[Campaign.Field.spend] 
                 
                 #Campaign Spend value
-                campaign_spent_val = campaign_spent[0][AdsInsights.Field.spend]
-                campaigns_all["Amount_spent"].append(campaign_spent_val)
+                campaign_spent_val = campaign_spent_obj[0][AdsInsights.Field.spend]
+                # campaigns_all["Amount_spent"].append(campaign_spent_val)
 
                 #AdSet Object
                 adset = AdAccount(my_camp[Campaign.Field.id]).get_ad_sets(
@@ -180,23 +177,22 @@ def get_data_from_api(start_date,end_date):
                 campaigns_all["Campaign_id"].append(campaign_id)
                 campaigns_all["Amount_spent"].append(campaign_spent_val)
 
-                if (check_limit(bussiness_account_id,access_token)>75):
-                    print('75% Rate Limit Reached. Cooling Time 5 Minutes.')
-                    # logging.debug('75% Rate Limit Reached. Cooling Time 5 Minutes.')
-                    time.sleep(300)
+                
                     
                 print(campaigns_all)
-                # time.sleep(10)  
+                time.sleep(10)  
 
             except Exception as e:
                 print(e)
                 if e is "page_id":
                     continue
+                if e == 'FacebookRequestError':
+                    print("Limit Reached")
 
             finally:
                 end_time = datetime.datetime.now()
                 diff = end_time - start_time
-                print(diff.total_seconds())
+                # print(diff.total_seconds())
 
     return campaigns_all 
     
