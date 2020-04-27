@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 
 import django_heroku
 import os
+import secrets
 
 
 
@@ -25,7 +26,7 @@ STATIC_DIR = os.path.join(BASE_DIR,'amountspent/static/')
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ['SECRET_KEY']
+SECRET_KEY = secrets.token_hex(16)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True

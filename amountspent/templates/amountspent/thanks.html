@@ -8,21 +8,39 @@
     <div class="container d-flex h-100 align-items-center">
       <div class="mx-auto text-center">
         <h1 class="mx-auto my-0 text-uppercase">Thank you</h1>
-        <h2 class="text-white-50 mx-auto mt-2 mb-5">
-          {% for dict in spend %}
-            <p>{{dict.Campaign_id}}</p>
-          
-          
-          <!-- <p>{{diction}}</p> -->
-            <!-- <table class="table">
-              <thead>
+
+          <table class="table text-white-50 mx-auto mt-2 mb-5">
+            <thead>
+              <tr>
+                <th>Campaign ID</th>
+                <th>Page ID</th>
+                <th>Amount Spent</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for rows in table_data %}
                 <tr>
-                  <th scope="col">{{diction.Campaign_id}}</th>
-                </tr>
-              </thead>
-            </table> -->
-          {% endfor %}
-        </h2>
+                  <td>{{rows.0}}</td>
+                  <td>{{rows.1}}</td>
+                  <td>{{rows.2}}</td>
+                </tr>  
+              {% endfor %}
+              
+            </tbody>
+          </table>
+          <!-- {% for i, r in df.iterrows %}
+            {{i}}
+          
+          
+          <p>{{diction}}</p>
+             <table class="table"> -->
+              <!-- <thead> -->
+                <!-- <tr> -->
+                  <!-- <th scope="col">{{diction.Campaign_id}}</th> -->
+                <!-- </tr> -->
+              <!-- </thead> -->
+            <!-- </table> --> 
+          <!-- {% endfor %} --> 
         <h2 class="text-white-50 mx-auto mt-2 mb-5">From: {{start_date}} Till: {{end_date}}</h2>
         <h2 class="text-white-50 mx-auto mt-2 mb-5">Total Ads Count: {{total_count}}</h2>
         <!-- <a href="#about" class="btn btn-primary js-scroll-trigger"></a> -->

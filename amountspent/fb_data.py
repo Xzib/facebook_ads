@@ -61,6 +61,11 @@ import requests as rq
 
 def get_data_from_api(start_date,end_date):
 
+    Campaign_ID = []
+    Page_ID = []
+    Amount_Spent = []
+    
+    
     campaigns_all = {"Campaign_id":[],
                     "Page_id":[],
                     "Amount_spent":[],
@@ -166,9 +171,11 @@ def get_data_from_api(start_date,end_date):
                 if 'page_id' in adset[0][AdSet.Field.promoted_object]:
                     page_id = adset[0][AdSet.Field.promoted_object][AdPromotedObject.Field.page_id]  
                     campaigns_all["Page_id"].append(page_id)
+                    Page_ID.append(page_id)
                 elif 'pixel_id' in adset[0][AdSet.Field.promoted_object]:
                     pixel_id = adset[0][AdSet.Field.promoted_object][AdPromotedObject.Field.pixel_id]
                     campaigns_all["Page_id"].append(pixel_id)
+                    Page_ID.append(pixel_id)
                     
                 else:
                     continue
@@ -176,7 +183,8 @@ def get_data_from_api(start_date,end_date):
                 # Add Values to Dictionary
                 campaigns_all["Campaign_id"].append(campaign_id)
                 campaigns_all["Amount_spent"].append(campaign_spent_val)
-
+                Campaign_ID.append(campaign_id)
+                Amount_Spent.append(campaign_spent_val)
                 
                     
                 print(campaigns_all)
@@ -186,15 +194,20 @@ def get_data_from_api(start_date,end_date):
                 print(e)
                 if e is "page_id":
                     continue
+                if e is "prmoted_object":
+                    continue
                 if e == 'FacebookRequestError':
                     print("Limit Reached")
 
             finally:
                 end_time = datetime.datetime.now()
                 diff = end_time - start_time
+        
+        tuples_of_data = list(zip(Campaign_ID,Page_ID,Amount_Spent))
+        
                 # print(diff.total_seconds())
 
-    return campaigns_all 
+    return campaigns_all,tuples_of_data
     
 
         # # Iterate through all accounts in the business account

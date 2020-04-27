@@ -22,12 +22,17 @@ def index(request):
             start_date = str(start_date)
             end_date = str(end_date)
             print(f"Your start date is {start_date} and your end date is {end_date}" )
-            print(type(start_date))
+            # print(type(start_date))
             spend = get_data_from_api(start_date,end_date)
-            spend = list(spend)
-            request.session['spend'] = spend
-            # df = pd.DataFrame(spend)
-            # df.columns = ['Campaign_ID', 'Page_ID', 'Amount_spent']
+            # spend = list(spend)
+            list_of_data = spend[1]
+            request.session['table_val'] = list_of_data
+
+            print(list_of_data)
+            df = pd.DataFrame(spend[0])
+            df.columns = ['Campaign_ID', 'Page_ID', 'Amount_spent']
+            # print(df.to_json())
+            # request.session['df'] = df
             # print(df.dtypes)
             # df.Amount_spent = df.Amount_spent.astype('float')
             # df.Campaign_ID = df.Campaign_ID.astype('str')
@@ -54,8 +59,8 @@ def index(request):
     return render(request, 'amountspent/index.html' , {'form' : form})
 
 def thanks(request):
-    context = {'spend':request.session['spend']}
-    return  render(request,'amountspent/thanks.html', context)
+    context = {'table_data':request.session['table_val']}
+    return  render(request,'amountspent/thanks.html', context = context)
 
 def date_error(request, date_diff):
     return render(request, 'amountspent/date_error.html',{'error':date_diff})
