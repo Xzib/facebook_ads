@@ -1,4 +1,6 @@
 {% extends "amountspent/base.html" %}
+{% load float_two_dec  %}
+
 {% block title %}
   Thanks
 {% endblock  %}
@@ -12,7 +14,6 @@
           <table class="table text-white-50 mx-auto mt-2 mb-5">
             <thead>
               <tr>
-                <th>Campaign ID</th>
                 <th>Page ID</th>
                 <th>Amount Spent</th>
               </tr>
@@ -20,9 +21,9 @@
             <tbody>
               {% for rows in table_data %}
                 <tr>
-                  <td>{{rows.0}}</td>
-                  <td>{{rows.1}}</td>
-                  <td>{{rows.2}}</td>
+                  <td>{{ rows.0 }}</td>
+                  <td>{{ rows.1|float_two_dec}}</td>
+
                 </tr>  
               {% endfor %}
               
@@ -41,8 +42,8 @@
               <!-- </thead> -->
             <!-- </table> --> 
           <!-- {% endfor %} --> 
-        <h2 class="text-white-50 mx-auto mt-2 mb-5">From: {{start_date}} Till: {{end_date}}</h2>
-        <h2 class="text-white-50 mx-auto mt-2 mb-5">Total Ads Count: {{total_count}}</h2>
+        <h2 class="text-white-50 mx-auto mt-2 mb-5">From: {{start_date}}  Till: {{end_date}}</h2>
+        <!-- <h2 class="text-white-50 mx-auto mt-2 mb-5">Total Ads Count: {{total_count}}</h2> -->
         <!-- <a href="#about" class="btn btn-primary js-scroll-trigger"></a> -->
       </div>
     </div>

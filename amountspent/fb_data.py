@@ -30,6 +30,7 @@ from facebook_business.adobjects.campaign import Campaign
 from facebook_business.adobjects.adset import AdSet
 from facebook_business.adobjects.adpromotedobject import AdPromotedObject
 from facebook_business.adobjects.adreportrun import AdReportRun
+from facebook_business.adobjects.page import Page
 
 from facebook_business.adobjects.customaudience import CustomAudience
 from facebook_business.adobjects.business import Business
@@ -39,23 +40,43 @@ import time
 import logging
 import requests as rq
 
+
+def compare_values(list_of_tuples):
+    page_list = []
+    sum_of_amount_list = []
+    for i, val in enumerate(list_of_tuples):
+        amount = float(val[2])
+        # print(amount)
+        for j in range(i+1,len(list_of_tuples)):
+            # print(j)
+            # print(list_of_tuples[j][1])
+            if val[1] == list_of_tuples[j][1]:
+                if val[1] not in page_list:
+                    page_list.append(val[1])
+                amount += float(list_of_tuples[j][2])
+        sum_of_amount_list.append(amount)    
+    sum_of_pages = list(zip(page_list,sum_of_amount_list))
+    return sum_of_pages  
+
+
+# Function to find the string between two strings or characters
 #Function to find the string between two strings or characters
 # def find_between( s, first, last ):
 #     try:
 #         start = s.index( first ) + len( first )
 #         end = s.index( last, start )
-#         # print(s[start:end])
 #         return s[start:end]
-
 #     except ValueError:
 #         return ""
 
 # #Function to check how close you are to the FB Rate Limit
-# def check_limit(ad_account_id,access_token):
-#     check=rq.get('https://graph.facebook.com/v6.0/'+'act_'+ad_account_id+'/insights?access_token='+access_token)
-#     # print(check)
-#     usage=float(find_between(check.headers['x-ad-account-usage'],':','}'))
-#     # print(usage)
+# def check_limit(account_number,my_access_token):
+#     check=rq.get('https://graph.facebook.com/v6.0/'+account_number+'/insights?access_token='+my_access_token)
+#     print(check)
+#     call=float(find_between(check.headers['x-business-use-case-usage'],'call_count":','}'))
+#     cpu=float(find_between(check.headers['x-business-use-case-usage'],'total_cputime":','}'))
+#     total=float(find_between(check.headers['x-business-use-case-usage'],'total_time":',','))
+#     usage=max(call,cpu,total)
 #     return usage
 
 
@@ -64,7 +85,7 @@ def get_data_from_api(start_date,end_date):
     Campaign_ID = []
     Page_ID = []
     Amount_Spent = []
-    
+    Page_Name = []
     
     campaigns_all = {"Campaign_id":[],
                     "Page_id":[],
@@ -74,7 +95,7 @@ def get_data_from_api(start_date,end_date):
     pixel_id = None
 
 
-    access_token = 'EAAUbBhxccoEBACYABVi5uXdZCfQ94oZAM1B8s0ZB32qsCShZAW3ShDZAstZClenWH0s4bD55aVZCpTgokZA9kfwCJvsKBPD6dmSu2lHGZAf0U2OY2kjphsw8MpZAtgZCUs5KRyV2PXWJoum9vFA4bnUa8Gy6ubTlo7xxROB55qXAKEU5AZDZD'
+    access_token = 'EAAUbBhxccoEBALbQCDsVMLzwdZBZAZBXApZA0t1Qy3GtjZALfs89EMFhH62f5Kp7FWvshYRTrur41B14vICAgTf1TOba8qx7SBPejdqR4gZBqZCGDo0l0WvsmzubUKKqHncpyqhSpUqcO7O0WJsB1PnSZAMY7t7awukDuIYwrisTYwZDZD'
     bussiness_account_id = '1517651558352959'
     app_secret = '7a3ad485c97dbf45ee83562bc0dcb570'
     app_id = '1437087943127681'
@@ -143,13 +164,13 @@ def get_data_from_api(start_date,end_date):
         )
        
         for campaign in account_data:
-            # if (check_limit(bussiness_account_id,access_token)>75):
-            #         # print('75% Rate Limit Reached. Cooling Time 5 Minutes.')
-            #         # logging.debug('75% Rate Limit Reached. Cooling Time 5 Minutes.')
-            #         time.sleep(300)
+
             try:
                 #Check if you reached 75% of the limit, if yes then back-off for 5 minutes (put this chunk in your 'for ad is ads' loop, every 100-200 iterations)
-                
+                if (check_limit(bussiness_account_id,access_token)>75):
+                    print('75% Rate Limit Reached. Cooling Time 5 Minutes.')
+                    logging.debug('75% Rate Limit Reached. Cooling Time 5 Minutes.')
+                    time.sleep(300)
 
                 #ID OF Campaign
                 campaign_id = campaign[AdsInsights.Field.campaign_id]
@@ -172,6 +193,9 @@ def get_data_from_api(start_date,end_date):
                     page_id = adset[0][AdSet.Field.promoted_object][AdPromotedObject.Field.page_id]  
                     campaigns_all["Page_id"].append(page_id)
                     Page_ID.append(page_id)
+                    # # for page in Page_ID:
+                    # x = Page(page_id).get_feed(fields=['name'],params={})
+                    # print(x)
                 elif 'pixel_id' in adset[0][AdSet.Field.promoted_object]:
                     pixel_id = adset[0][AdSet.Field.promoted_object][AdPromotedObject.Field.pixel_id]
                     campaigns_all["Page_id"].append(pixel_id)
@@ -186,9 +210,10 @@ def get_data_from_api(start_date,end_date):
                 Campaign_ID.append(campaign_id)
                 Amount_Spent.append(campaign_spent_val)
                 
+
                     
                 print(campaigns_all)
-                time.sleep(10)  
+                # time.sleep(10)  
 
             except Exception as e:
                 print(e)
@@ -196,7 +221,7 @@ def get_data_from_api(start_date,end_date):
                     continue
                 if e is "prmoted_object":
                     continue
-                if e == 'FacebookRequestError':
+                if e == '   FacebookRequestError':
                     print("Limit Reached")
 
             finally:
@@ -204,10 +229,11 @@ def get_data_from_api(start_date,end_date):
                 diff = end_time - start_time
         
         tuples_of_data = list(zip(Campaign_ID,Page_ID,Amount_Spent))
-        
+        sum_amount = compare_values(tuples_of_data)
+        print(sum_amount)
                 # print(diff.total_seconds())
 
-    return campaigns_all,tuples_of_data
+    return campaigns_all,sum_amount
     
 
         # # Iterate through all accounts in the business account
