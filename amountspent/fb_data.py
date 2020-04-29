@@ -124,6 +124,7 @@ def get_data_from_api(start_date,end_date):
 
     # Iterate through the adaccounts
     for account in my_ad_account:
+        print(len(my_ad_account))
         # i = 0
         # Create an addaccount object from the adaccount id to make it possible to get insights
         tempaccount = AdAccount(account[AdAccount.Field.id])
@@ -153,7 +154,7 @@ def get_data_from_api(start_date,end_date):
 
         # Grab insight info for all ads in the adaccount
         account_data = tempaccount.get_insights(params={
-                                                        'time_increment':'1',
+                                                        # 'time_increment':'1',
                                                         'time_range':{'since':start_date, 'until':end_date},
                                                         'level':'campaign',
                                                         },
@@ -177,10 +178,11 @@ def get_data_from_api(start_date,end_date):
 
                 #ID OF Campaign
                 # if campaign!=[]:
-                print(campaign)
+                # print(campaign)
+                # print(len(account_data))
                 campaign_id = campaign[AdsInsights.Field.campaign_id]
                 campaign_spent_val = campaign[AdsInsights.Field.spend]
-                print(campaign_spent_val)
+                # print(campaign_spent_val)
                 my_camp = Campaign(campaign_id)
                 print(my_camp)
                 #Campaign Insights Object
@@ -200,9 +202,10 @@ def get_data_from_api(start_date,end_date):
                     page_id = adset[0][AdSet.Field.promoted_object][AdPromotedObject.Field.page_id]  
                     campaigns_all["Page_id"].append(page_id)
                     Page_ID.append(page_id)
+                    # page_req = rq.head('https://facebook.com/'+page_id)
+                    # print(page_req.headers)
                     # # for page in Page_ID:
-                    # x = Page(page_id).get_feed(fields=['name'],params={})
-                    # print(x)
+                    # print(Page(page_id).api_get(fields=['name'],params={}))
                 elif 'pixel_id' in adset[0][AdSet.Field.promoted_object]:
                     pixel_id = adset[0][AdSet.Field.promoted_object][AdPromotedObject.Field.pixel_id]
                     campaigns_all["Page_id"].append(pixel_id)
@@ -217,7 +220,7 @@ def get_data_from_api(start_date,end_date):
                 campaigns_all["Amount_spent"].append(campaign_spent_val)
                 Campaign_ID.append(campaign_id)
                 Amount_Spent.append(campaign_spent_val)                   
-                print(campaigns_all)
+                # print(campaigns_all)
                 time.sleep(2)  
 
             except KeyError as e:
@@ -227,6 +230,7 @@ def get_data_from_api(start_date,end_date):
             except Exception as e:
                 print(e)
                 if FacebookRequestError.api_error_code(e) == 17:
+                    print(campaigns_all)
                     print("Limit Reached")
                     print("Wait 5 minutes for cooldown")
                     time.sleep(300)
@@ -241,8 +245,9 @@ def get_data_from_api(start_date,end_date):
         
         tuples_of_data = list(zip(Campaign_ID,Page_ID,Amount_Spent))
         sum_amount = compare_values(tuples_of_data)
+        
         print(sum_amount)
-                # print(diff.total_seconds())
+        # print(diff.total_seconds())
 
     return campaigns_all,sum_amount
     
@@ -324,5 +329,5 @@ def get_data_from_api(start_date,end_date):
 
 
 if __name__ == "__main__":
-    x = get_data_from_api(start_date='2020-03-1', end_date = '2020-03-29')
+    x = get_data_from_api(start_date='2020-03-01', end_date = '2020-03-15')
     print(x)
