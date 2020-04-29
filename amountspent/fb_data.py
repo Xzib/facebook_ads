@@ -39,6 +39,7 @@ import datetime
 import time
 import logging
 import requests as rq
+from facebook_business.exceptions import FacebookRequestError
 
 
 def compare_values(list_of_tuples):
@@ -160,6 +161,8 @@ def get_data_from_api(start_date,end_date):
                                         fields=[
                                             AdsInsights.Field.campaign_id,
                                             AdsInsights.Field.campaign_name,
+                                            AdsInsights.Field.spend,
+
                                             ]
         )
        
@@ -167,21 +170,25 @@ def get_data_from_api(start_date,end_date):
 
             try:
                 #Check if you reached 75% of the limit, if yes then back-off for 5 minutes (put this chunk in your 'for ad is ads' loop, every 100-200 iterations)
-                if (check_limit(bussiness_account_id,access_token)>75):
-                    print('75% Rate Limit Reached. Cooling Time 5 Minutes.')
-                    logging.debug('75% Rate Limit Reached. Cooling Time 5 Minutes.')
-                    time.sleep(300)
+                # if (check_limit(bussiness_account_id,access_token)>75):
+                #     print('75% Rate Limit Reached. Cooling Time 5 Minutes.')
+                #     logging.debug('75% Rate Limit Reached. Cooling Time 5 Minutes.')
+                #     time.sleep(300)
 
                 #ID OF Campaign
+                # if campaign!=[]:
+                print(campaign)
                 campaign_id = campaign[AdsInsights.Field.campaign_id]
+                campaign_spent_val = campaign[AdsInsights.Field.spend]
+                print(campaign_spent_val)
                 my_camp = Campaign(campaign_id)
-
+                print(my_camp)
                 #Campaign Insights Object
-                campaign_spent_obj = my_camp.get_insights(params={}, fields=[AdsInsights.Field.spend])
+                # campaign_spent_obj = my_camp.get_insights(params={}, fields=[AdsInsights.Field.spend])
                 # campaign_spent = campaign_spent_obj[Campaign.Field.spend] 
-                
+                # print(campaign_spent_obj)
                 #Campaign Spend value
-                campaign_spent_val = campaign_spent_obj[0][AdsInsights.Field.spend]
+                
                 # campaigns_all["Amount_spent"].append(campaign_spent_val)
 
                 #AdSet Object
@@ -203,30 +210,34 @@ def get_data_from_api(start_date,end_date):
                     
                 else:
                     continue
-
+ 
+ 
                 # Add Values to Dictionary
                 campaigns_all["Campaign_id"].append(campaign_id)
                 campaigns_all["Amount_spent"].append(campaign_spent_val)
                 Campaign_ID.append(campaign_id)
-                Amount_Spent.append(campaign_spent_val)
-                
-
-                    
+                Amount_Spent.append(campaign_spent_val)                   
                 print(campaigns_all)
-                # time.sleep(10)  
+                time.sleep(2)  
+
+            except KeyError as e:
+                print(e)
+                continue
 
             except Exception as e:
                 print(e)
-                if e is "page_id":
-                    continue
-                if e is "prmoted_object":
-                    continue
-                if e == '   FacebookRequestError':
+                if FacebookRequestError.api_error_code(e) == 17:
                     print("Limit Reached")
+                    print("Wait 5 minutes for cooldown")
+                    time.sleep(300)
+                    continue
+            
+                
 
             finally:
                 end_time = datetime.datetime.now()
                 diff = end_time - start_time
+                print(diff)
         
         tuples_of_data = list(zip(Campaign_ID,Page_ID,Amount_Spent))
         sum_amount = compare_values(tuples_of_data)
@@ -313,5 +324,5 @@ def get_data_from_api(start_date,end_date):
 
 
 if __name__ == "__main__":
-    x = get_data_from_api(start_date='2020-04-10', end_date = '2020-04-14')
+    x = get_data_from_api(start_date='2020-03-1', end_date = '2020-03-29')
     print(x)
