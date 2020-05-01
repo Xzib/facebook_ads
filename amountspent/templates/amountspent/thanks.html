@@ -21,7 +21,7 @@
               <tbody>
                 {% for rows in table_data %}
                   <tr>
-                    <td>{{ rows.0 }}</td>
+                    <td><a tabindex="0"  data-toggle="popover" data-trigger="focus" title="Click on the link to open the page" data-content="" target="_blank" rel="noopener" href="https://facebook.com/{{rows.0}}">{{ rows.0 }}</a></td>
                     <td>{{ rows.1|float_two_dec}}</td>
                   </tr>  
                 {% endfor %}
@@ -49,3 +49,8 @@
     </div>
   </header>
 {% endblock content %}
+<script>
+  $('.popover-dismiss').popover({
+  trigger: 'focus'
+})
+</script>
