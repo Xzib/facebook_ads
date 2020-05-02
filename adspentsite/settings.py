@@ -31,7 +31,8 @@ SECRET_KEY = os.environ['SECRET_KEY']
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['fbamountspent.herokuapp.com']
+ALLOWED_HOSTS = ['fbamountspent.herokuapp.com',
+                'facebook-ads-ggarcia.herokuapp.com']
 
 
 # Application definition
@@ -55,6 +56,9 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+
 
 ROOT_URLCONF = 'adspentsite.urls'
 
