@@ -86,7 +86,7 @@ def get_data_from_api(start_date,end_date):
     Campaign_ID = []
     Page_ID = []
     Amount_Spent = []
-    Page_Name = []
+    # Page_Name = []
     
     campaigns_all = {"Campaign_id":[],
                     "Page_id":[],
