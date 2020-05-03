@@ -34,7 +34,7 @@ DEBUG = False
 #ASYNC UNSAFE
 DJANGO_ALLOW_ASYNC_UNSAFE = True
 
-ALLOWED_HOSTS = [*]
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
