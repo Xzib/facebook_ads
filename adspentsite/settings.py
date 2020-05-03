@@ -31,6 +31,9 @@ SECRET_KEY = os.environ['SECRET_KEY']
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
+#ASYNC UNSAFE
+DJANGO_ALLOW_ASYNC_UNSAFE = True
+
 ALLOWED_HOSTS = ['fbamountspent.herokuapp.com',
                 'facebook-ads-ggarcia.herokuapp.com']
 
@@ -123,6 +126,9 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
+
+
+
 
 
 # Static files (CSS, JavaScript, Images)
