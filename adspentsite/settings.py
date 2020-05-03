@@ -34,8 +34,7 @@ DEBUG = False
 #ASYNC UNSAFE
 DJANGO_ALLOW_ASYNC_UNSAFE = True
 
-ALLOWED_HOSTS = ['fbamountspent.herokuapp.com',
-                'facebook-ads-ggarcia.herokuapp.com']
+ALLOWED_HOSTS = [*]
 
 
 # Application definition
